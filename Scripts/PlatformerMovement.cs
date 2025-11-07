@@ -38,6 +38,7 @@ public class PlatformerMovement: MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Physics2D.IgnoreLayerCollision(gameObject.layer, gameObject.layer);
         ImpactTime -= Time.unscaledDeltaTime;
         if(ImpactTime >0){
             Time.timeScale = 0;
@@ -84,9 +85,9 @@ public class PlatformerMovement: MonoBehaviour
         Orient.transform.eulerAngles = -(Orient.transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition));
         if(Input.GetMouseButtonDown(0)){
             var Rk = Instantiate(Rocket, transform.position + Orient.transform.forward.normalized * 1, Quaternion.identity);
-            Rk.transform.position = (Vector2)transform.position + direction *1.2f;
+            Rk.transform.position = (Vector2)transform.position + direction *1.1f;
             Rk.transform.right = direction;
-            Rk.GetComponent<Rigidbody2D>().linearVelocity = Rk.transform.right.normalized * 10;
+            Rk.GetComponent<Rigidbody2D>().linearVelocity = Rk.transform.right.normalized * 20;
         }
       
     }
