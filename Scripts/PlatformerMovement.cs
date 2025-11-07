@@ -20,7 +20,8 @@ public class PlatformerMovement: MonoBehaviour
     public GameObject Orient;
     public Vector3 KBVelocity;
     float ImpactTime;
-    
+    Vector3 RespawnPosition;
+
     // Start is called before the first frame update
     //Additional Instructions
     //Make sure the object you attatch this to has a Rigidbody2D component attatched to it, and there is a square below it with the Layer "Ground"
@@ -79,9 +80,19 @@ public class PlatformerMovement: MonoBehaviour
             Camera.main.orthographicSize = Mathf.Lerp(Camera.main.orthographicSize,BaseSize,0.2f);
         }
         Vector2 mouseScreenPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
+        
+        var pos1 = transform.position;
+        pos1.z = -10;
         // get direction you want to point at
         Vector2 direction = (mouseScreenPosition - (Vector2)transform.position).normalized;
+         if(Input.GetMouseButton(1)){
+            Camera.main.transform.position = Vector3.Lerp(Camera.main.transform.position, pos1 + ((Vector3)direction * 10), 0.1f);
+        }
+        else{
+            var pos = transform.position;
+            pos.z = -10;
+            Camera.main.transform.position = Vector3.Lerp(Camera.main.transform.position, pos, 0.1f);
+        }
         Orient.transform.eulerAngles = -(Orient.transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition));
         if(Input.GetMouseButtonDown(0)){
             var Rk = Instantiate(Rocket, transform.position + Orient.transform.forward.normalized * 1, Quaternion.identity);
@@ -120,13 +131,23 @@ public class PlatformerMovement: MonoBehaviour
     
     public void OnTriggerEnter2D(Collider2D other){
         if(other.gameObject.TryGetComponent(out Explosion e)){
-            body.linearVelocity = (transform.position - other.gameObject.transform.position)*e.force;
+            body.linearVelocity = ((transform.position - other.gameObject.transform.position).normalized)*e.force;
             ImpactTime = 0.4f;
             foreach(SpriteRenderer s in FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None)){
                 Camera.main.backgroundColor = new Color(1, 1, 1);
                 s.color = new Color(0.01f, 0.01f, 0.01f, 1);
             }
 
+        }
+       if(other.gameObject.TryGetComponent(out RespawnBox r)){
+            RespawnPosition = r.RespawnPoint;
+        }
+    }
+    public void OnCollisionEnter2D(Collision2D col){
+       
+        if(col.collider.gameObject.CompareTag("Kill")){
+            Debug.Log("HitKillbox");
+            transform.position = RespawnPosition;
         }
     }
 }
