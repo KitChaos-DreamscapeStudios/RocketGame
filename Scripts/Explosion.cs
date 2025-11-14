@@ -14,4 +14,9 @@ public class Explosion : MonoBehaviour
     {
         
     }
+    void OnTriggerEnter2D(Collider2D other){
+        if(other.GetComponent<Explosion>()){
+            force *= 2;
+        }
+    }
 }

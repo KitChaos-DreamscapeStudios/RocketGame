@@ -21,7 +21,9 @@ public class PlatformerMovement: MonoBehaviour
     public Vector3 KBVelocity;
     float ImpactTime;
     Vector3 RespawnPosition;
-
+    public int RocketsLeft;
+    public TMPro.TextMeshProUGUI AmmoCounter;
+    float RocketCool;
     // Start is called before the first frame update
     //Additional Instructions
     //Make sure the object you attatch this to has a Rigidbody2D component attatched to it, and there is a square below it with the Layer "Ground"
@@ -53,10 +55,12 @@ public class PlatformerMovement: MonoBehaviour
             }
             Camera.main.backgroundColor = new Color(0.2f, 0.3f, 0.7f);
         }
-      
+        if(isOnGround&&ImpactTime<=-0.5f){
+            RocketsLeft = 3;
+        }
         //Camera.main.transform.position = Vector3.MoveTowards(Camera.main.transform.position, new Vector3(transform.position.x, transform.position.y, -10), 0.1f);
         horizontal = Input.GetAxisRaw("Horizontal");
-        isOnGround = Physics2D.OverlapBox(transform.position-new Vector3(0,1f), new Vector2(1, 0.2f), 0, ground);
+        isOnGround = Physics2D.OverlapBox(transform.position-new Vector3(0,1f), new Vector2(0.95f, 0.2f), 0, ground);
         if (Input.GetKeyDown(KeyCode.Space) && isOnGround == true)
         {
              if(body.linearVelocityX >= THRESHOLDVELOC){
@@ -86,7 +90,7 @@ public class PlatformerMovement: MonoBehaviour
         // get direction you want to point at
         Vector2 direction = (mouseScreenPosition - (Vector2)transform.position).normalized;
          if(Input.GetMouseButton(1)){
-            Camera.main.transform.position = Vector3.Lerp(Camera.main.transform.position, pos1 + ((Vector3)direction * 10), 0.1f);
+            Camera.main.transform.position = Vector3.Lerp(Camera.main.transform.position, pos1 + ((Vector3)direction * 20), 0.1f);
         }
         else{
             var pos = transform.position;
@@ -94,13 +98,17 @@ public class PlatformerMovement: MonoBehaviour
             Camera.main.transform.position = Vector3.Lerp(Camera.main.transform.position, pos, 0.1f);
         }
         Orient.transform.eulerAngles = -(Orient.transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition));
-        if(Input.GetMouseButtonDown(0)){
+        if(Input.GetMouseButtonDown(0)&&RocketCool <=0&&RocketsLeft>0){
+            RocketsLeft -= 1;
+            RocketCool = 0.5f;
             var Rk = Instantiate(Rocket, transform.position + Orient.transform.forward.normalized * 1, Quaternion.identity);
             Rk.transform.position = (Vector2)transform.position + direction *1.1f;
             Rk.transform.right = direction;
-            Rk.GetComponent<Rigidbody2D>().linearVelocity = Rk.transform.right.normalized * 20;
+            Rk.GetComponent<Rigidbody2D>().linearVelocity = Rk.transform.right.normalized * 10;
         }
-      
+        RocketCool -= Time.deltaTime;
+        AmmoCounter.text = RocketsLeft.ToString();
+
     }
     private void FixedUpdate()
     {
@@ -141,6 +149,13 @@ public class PlatformerMovement: MonoBehaviour
         }
        if(other.gameObject.TryGetComponent(out RespawnBox r)){
             RespawnPosition = r.RespawnPoint;
+        }
+        if(other.gameObject.TryGetComponent(out AmmoPack A)){
+            RocketsLeft += A.AmmoFilled;
+            if(RocketsLeft>3){
+                RocketsLeft = 3;
+            }
+            A.RespawnTime = 5;
         }
     }
     public void OnCollisionEnter2D(Collision2D col){
